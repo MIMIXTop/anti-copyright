@@ -1,6 +1,7 @@
 /.vscode
 /build
-/input.txt
-/output.txt
+/TEXT
 /test
 /test.cpp
+/input.txt
+/output.txt

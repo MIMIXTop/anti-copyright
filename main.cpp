@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 
 std::string DocReader(std::string &fileName) {
@@ -142,19 +143,21 @@ std::unordered_map<std::string,std::multiset<std::string>> preProcessor(std::str
     return resultDoc;
 }
 
-std::vector<std::vector<int16_t>> getVector(const std::unordered_map<std::string, std::multiset<std::string>>& text,const std::map<std::string, std::set<std::string>>& vocabulary
-) {
-    std::vector<std::vector<int16_t>> vec(vocabulary.size(), std::vector<int16_t>(vocabulary.size(),0));
-    int counter = 0;
+std::vector<std::vector<int16_t>> getVector(const std::unordered_map<std::string, std::multiset<std::string>>& text,const std::map<std::string, std::set<std::string>>& vocabulary) {
+    std::vector<std::vector<int16_t>> vec; 
+    vec.reserve(vocabulary.size());
     for (const auto& [term, pairWithTerm] : vocabulary) {
-        int inside_counter = 0;
-        for (const auto& word : pairWithTerm) {
-            if (text.count(term)) {
-                vec[counter][inside_counter] =std::count(text.at(term).begin(),text.at(term).end(),word);
+        std::vector<int16_t> tempVec;
+        if(text.count(term)){
+            tempVec.reserve(pairWithTerm.size());
+            for (const auto& word : pairWithTerm) {
+                tempVec.push_back(std::count(text.at(term).begin(),text.at(term).end(),word));
             }
-            ++inside_counter;
+            vec.push_back(std::move(tempVec));
+        } else {
+            tempVec.resize(pairWithTerm.size());
+            vec.push_back(std::move(tempVec));
         }
-        ++counter;
     }
     return vec;
 }
@@ -183,13 +186,6 @@ double cosinSimilarity(const std::vector<std::vector<int16_t>>& vec1, const std:
     return dotProduct / (std::sqrt(normV1) * std::sqrt(normV2));
 }
 
-void printVector(std::vector<int16_t> vec) {
-    for (auto &&i : vec) {
-        std::cout << i << ' ';
-    }
-    std::cout << '\n';
-}
-
 void printText(std::unordered_map<std::string,std::multiset<std::string>> &text) {
     for (auto &&[term,set] : text) {
         std::cout << term << ": ";
@@ -198,16 +194,33 @@ void printText(std::unordered_map<std::string,std::multiset<std::string>> &text)
         }
         std::cout << '\n';
     }
-    std::cout << '\n';
+    std::cout << '\n' << '\n';
+}
+
+void printVec(std::vector<std::vector<int16_t>> &vec) {
+    for (auto &&row : vec) {
+        for (auto &&num : row) {
+            std::cout << num << ' ';
+        }
+        std::cout << '\n';
+    }
+    std::cout << '\n' << '\n';
 }
 
 int main(){
-    std::string path1 = "../testText.txt" ;
-    std::string path2 = "../testText2.txt" ;
+    std::string path1 = "../TEXT/doc1.txt" ;
+    std::string path2 = "../TEXT/doc2.txt" ;
+    std::string path3 = "../TEXT/doc3.txt" ;
+    std::string path4 = "../TEXT/doc4.txt" ;
+    std::string path5 = "../TEXT/doc5.txt" ;
+    std::string path6 = "../TEXT/doc6.txt" ;
 
     std::string doc1 = DocReader(path1);
     std::string doc2 = DocReader(path2);
-
+    std::string doc3 = DocReader(path3);
+    std::string doc4 = DocReader(path4);
+    std::string doc5 = DocReader(path5);
+    std::string doc6 = DocReader(path6);
 
     std::unordered_set<std::string> stopWords;
     std::map<std::string, std::set<std::string>> vocabulary;
@@ -215,16 +228,38 @@ int main(){
 
     std::unordered_map<std::string,std::multiset<std::string>> text1 = preProcessor(doc1,stopWords,vocabulary);
     std::unordered_map<std::string,std::multiset<std::string>> text2 = preProcessor(doc2,stopWords,vocabulary);
+    std::unordered_map<std::string,std::multiset<std::string>> text3 = preProcessor(doc3,stopWords,vocabulary);
+    std::unordered_map<std::string,std::multiset<std::string>> text4 = preProcessor(doc4,stopWords,vocabulary);
+    std::unordered_map<std::string,std::multiset<std::string>> text5 = preProcessor(doc5,stopWords,vocabulary);
+    std::unordered_map<std::string,std::multiset<std::string>> text6 = preProcessor(doc6,stopWords,vocabulary);
 
-
-    printText(text1);
+    /*printText(text1);
     printText(text2);
+    printText(text3);
+    printText(text4);
+    printText(text5);
+    printText(text6);*/
 
     std::vector<std::vector<int16_t>> vec1 = getVector(text1,vocabulary);
     std::vector<std::vector<int16_t>> vec2 = getVector(text2,vocabulary);
+    std::vector<std::vector<int16_t>> vec3 = getVector(text3,vocabulary);
+    std::vector<std::vector<int16_t>> vec4 = getVector(text4,vocabulary);
+    std::vector<std::vector<int16_t>> vec5 = getVector(text5,vocabulary);
+    std::vector<std::vector<int16_t>> vec6 = getVector(text6,vocabulary);
 
-    std::cout << "Схожесть 1 и 1: " << cosinSimilarity(vec1, vec1) << '\n';
-    std::cout << "Схожесть 1 и 2: " << cosinSimilarity(vec1, vec2) << '\n';
+    printVec(vec1);
+    //printVec(vec2);
+
+
+    //printVec(vec1);
+    //printVec(vec4);
+
+    std::cout << "Схожесть 1 и 1: " << std::fixed << std::showpoint << std::setprecision(12) << cosinSimilarity(vec1, vec1) << '\n';
+    std::cout << "Схожесть 1 и 2: " << std::fixed << std::showpoint << std::setprecision(12) << cosinSimilarity(vec1, vec2) << '\n';
+    std::cout << "Схожесть 1 и 3: " << std::fixed << std::showpoint << std::setprecision(12) << cosinSimilarity(vec1, vec3) << '\n';
+    std::cout << "Схожесть 1 и 4: " << std::fixed << std::showpoint << std::setprecision(12) << cosinSimilarity(vec1, vec4) << '\n';
+    std::cout << "Схожесть 1 и 5: " << std::fixed << std::showpoint << std::setprecision(12) << cosinSimilarity(vec1, vec5) << '\n';
+    std::cout << "Схожесть 1 и 6: " << std::fixed << std::showpoint << std::setprecision(12) << cosinSimilarity(vec1, vec6) << '\n';
 
     return 0;
 }
